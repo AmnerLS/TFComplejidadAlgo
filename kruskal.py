@@ -99,7 +99,7 @@ class MSTKruskal:
             print(f"Uno o ambos centros poblados no existen: {centro_poblado1}, {centro_poblado2}")
             return
         
-         # Crear la lista de aristas
+        # Crear la lista de aristas
         for u in self.grafo.edges(data=True):
             costo = u[2]['weight']
             aristas.append((costo, u[0], u[1]))
