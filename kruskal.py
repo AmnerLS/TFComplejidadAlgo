@@ -1,4 +1,5 @@
-from graphviz import Graph
+import networkx as nx
+import matplotlib.pyplot as plt
 
 class ConjuntoDisjunto:
     def __init__(self, vertices):
@@ -31,25 +32,27 @@ class MSTKruskal:
         self.costoTotal = 0
 
     def dibujaGrafo(self):
-        # Crear un nuevo grafo no dirigido
-        dibujo = Graph()
-        dibujo.graph_attr['rankdir'] = 'LR'
-        # Agregar nodos al grafo
-        for nodo in lag.keys():
-            dibujo.node(nodo)
-        # Agregar aristas con pesos al grafo
-        for nodo, conexiones in lag.items():
-            for vecino, peso in conexiones.items():
-                if nodo < vecino:  # Evitar duplicar aristas
-                    dibujo.edge(nodo, vecino, label=str(peso))
-        return dibujo
+        pos = nx.spring_layout(self.grafo)  # Posiciones de los nodos
+        labels = nx.get_edge_attributes(self.grafo, 'weight')
+        # Dibujar todos los nodos y aristas
+        nx.draw(self.grafo, pos, with_labels=False, node_size=50, node_color='skyblue', edge_color='gray')
+        nx.draw_networkx_edge_labels(self.grafo, pos, edge_labels=labels)
+    
+        plt.show()
 
     def dibujaMST(self):
-        dibujo = Graph()
-        dibujo.graph_attr['rankdir'] = 'LR'
+        mst_grafo = nx.Graph()
         for nodo, vecino, costo in self.mst:
-            dibujo.edge(nodo, vecino, label=str(costo))
-        return dibujo
+            mst_grafo.add_edge(nodo, vecino, weight=costo)
+    
+        pos = nx.spring_layout(mst_grafo)  # Posiciones de los nodos
+        labels = nx.get_edge_attributes(mst_grafo, 'weight')
+    
+        # Dibujar todos los nodos y aristas
+        nx.draw(mst_grafo, pos, with_labels=False, node_size=50, node_color='skyblue', edge_color='gray')
+        nx.draw_networkx_edge_labels(mst_grafo, pos, edge_labels=labels)
+    
+        plt.show()
 
     def Kruskal(self):
         aristas = []
@@ -66,9 +69,7 @@ class MSTKruskal:
         for costo, u, v in aristas:
             if ocd.find(u) != ocd.find(v):
                 ocd.union(u, v)
-                centro_poblado_u = self.grafo.nodes[u]['centro_poblado']
-                centro_poblado_v = self.grafo.nodes[v]['centro_poblado']
-                self.mst.append((centro_poblado_u, centro_poblado_v, costo))
+                self.mst.append((u, v, costo))
                 self.costoTotal += costo
 
     def getMST(self):
@@ -87,10 +88,19 @@ class MSTKruskal:
         
         # Buscar los índices de los CENTRO_POBLADO en el grafo
         for nodo in self.grafo.nodes:
-            if self.grafo.nodes[nodo]['centro_poblado'] == centro_poblado1:
+            antena = self.grafo.nodes[nodo]['label']  # Suponiendo que el nodo tiene un atributo 'data' que es una instancia de Antena
+            
+            if (antena.centro_poblado == centro_poblado1.nombre and 
+                antena.latitud == centro_poblado1.latitud and 
+                antena.longitud == centro_poblado1.longitud):
                 nodo1 = nodo
-            if self.grafo.nodes[nodo]['centro_poblado'] == centro_poblado2:
+                print(f"nodo1: {nodo1}, centro_poblado: {antena.centro_poblado}, latitud: {antena.latitud}, longitud: {antena.longitud}")
+            if (antena.centro_poblado == centro_poblado2.nombre and 
+                antena.latitud == centro_poblado2.latitud and 
+                antena.longitud == centro_poblado2.longitud):
                 nodo2 = nodo
+                print(f"nodo2: {nodo2}, centro_poblado: {antena.centro_poblado}, latitud: {antena.latitud}, longitud: {antena.longitud}")
+    
             if nodo1 is not None and nodo2 is not None:
                 break
 
@@ -111,9 +121,7 @@ class MSTKruskal:
         for costo, u, v in aristas:
             if ocd.find(u) != ocd.find(v):
                 ocd.union(u, v)
-                centro_poblado_u = self.grafo.nodes[u]['centro_poblado']
-                centro_poblado_v = self.grafo.nodes[v]['centro_poblado']
-                self.mst.append((centro_poblado_u, centro_poblado_v, costo))
+                self.mst.append((u, v, costo))
                 self.costoTotal += costo
 
                 # Verificar si los dos nodos ya están conectados

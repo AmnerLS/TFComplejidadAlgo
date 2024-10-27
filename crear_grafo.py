@@ -19,8 +19,7 @@ class CrearGrafo:
                 'CANT_EB_4G': row['CANT_EB_4G']
             }
             antena = Antena(row['CENTRO_POBLADO'], row['LATITUD'], row['LONGITUD'], tecnologias)
-            label = f"{antena.centro_poblado}\nLat: {antena.latitud}\nLon: {antena.longitud}\n3G: {antena.tecnologias['3G']}, 4G: {antena.tecnologias['4G']}, VOZ: {antena.tecnologias['VOZ']}, SMS: {antena.tecnologias['SMS']}, MMS: {antena.tecnologias['MMS']}, CANT_EB_3G: {antena.tecnologias['CANT_EB_3G']}, CANT_EB_4G: {antena.tecnologias['CANT_EB_4G']}"
-            self.G.add_node(index, label=label, centro_poblado=antena.centro_poblado)
+            self.G.add_node(index, label=antena, centro_poblado=antena.centro_poblado)
 
         connections = {i: 0 for i in range(len(dataset))}
 
@@ -46,8 +45,7 @@ class CrearGrafo:
                     'CANT_EB_4G': row['CANT_EB_4G']
                 }
                 antena = Antena(row['CENTRO_POBLADO'], row['LATITUD'], row['LONGITUD'], tecnologias)
-                label = f"{antena.centro_poblado}\nLat: {antena.latitud}\nLon: {antena.longitud}\n3G: {antena.tecnologias['3G']}, 4G: {antena.tecnologias['4G']}, VOZ: {antena.tecnologias['VOZ']}, SMS: {antena.tecnologias['SMS']}, MMS: {antena.tecnologias['MMS']}, CANT_EB_3G: {antena.tecnologias['CANT_EB_3G']}, CANT_EB_4G: {antena.tecnologias['CANT_EB_4G']}"
-                self.G.add_node(index, label=label, centro_poblado=antena.centro_poblado)
+                self.G.add_node(index, label=antena, centro_poblado=antena.centro_poblado)
 
         connections = {i: 0 for i in range(len(dataset))}
 
