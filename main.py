@@ -31,7 +31,7 @@ def dibujar_grafo(grafo, mst_resultado, nodo_inicio, nodo_fin):
 
     # Resaltar los nodos de interés
     indices_nodos_interes = [nodo_inicio, nodo_fin]
-    nx.draw_networkx_nodes(grafo, pos, nodelist=indices_nodos_interes, node_color='yellow', node_size=100)
+    #nx.draw_networkx_nodes(grafo, pos, nodelist=indices_nodos_interes, node_color='yellow', node_size=100)
 
     # Mostrar el grafo
     plt.show()
