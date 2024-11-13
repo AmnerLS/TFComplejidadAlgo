@@ -34,6 +34,7 @@ class CrearGrafo:
 
     def crear_por_tecnologia(self, dataset, tecnologia):
         for index, row in dataset.iterrows():
+            # Verificar que la tecnología seleccionada esté activa en la fila actual
             if row[tecnologia] == 1:
                 tecnologias = {
                     '3G': row['3G'],
@@ -51,6 +52,7 @@ class CrearGrafo:
 
         for i in range(len(dataset)):
             for j in range(i + 1, len(dataset)):
+                # Crear conexiones solo si ambos nodos soportan la tecnología seleccionada
                 if dataset[tecnologia][i] == 1 and dataset[tecnologia][j] == 1:
                     dist = self.hv.haversine(dataset['LATITUD'][i], dataset['LONGITUD'][j], dataset['LATITUD'][j], dataset['LONGITUD'][j])
                     if 10 < dist < 400 and connections[i] < 5 and connections[j] < 5:
