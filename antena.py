@@ -6,4 +6,4 @@ class Antena:
         self.tecnologias = tecnologias
 
     def __repr__(self):
-        return f"Antena({self.centro_poblado}, {self.latitud}, {self.longitud}, {self.tecnologias})"
+        return f"Antena:\n {self.centro_poblado},\n {self.latitud},\n {self.longitud},\n {self.tecnologias}"

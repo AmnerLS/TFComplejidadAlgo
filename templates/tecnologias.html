@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tecnologías</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            max-width: none;
+        }
+
+        .options {
+            flex: 1;
+            padding: 20px;
+            background-color: #f8f9fa;
+            min-width: 200px;
+        }
+
+        .map {
+            flex: 3;
+            background-color: #e9ecef;
+            position: relative;
+        }
+
+        .map iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .loading-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e9ecef;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="options">
+            <h2>Seleccione una tecnología</h2>
+            <form id="tecnologiaForm">
+                <div class="mb-3">
+                    <select class="form-select" id="tecnologiaSelect" name="tecnologia">
+                        <option value="3G">3G</option>
+                        <option value="4G">4G</option>
+                        <option value="VOZ">VOZ</option>
+                        <option value="SMS">SMS</option>
+                        <option value="MMS">MMS</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Aplicar</button>
+            </form>
+            <button class="btn btn-secondary w-100 mt-2" onclick="window.location.href='/opciones'">Volver</button>
+        </div>
+        <div class="map">
+            <!-- Loading screen -->
+            <div class="loading-container" id="loadingContainer">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <div>Generando mapa...</div>
+            </div>
+            
+            <!-- Error message -->
+            <div class="error-message" id="errorMessage">
+                Error al cargar el mapa. Por favor, recarga la página.
+            </div>
+            
+            <!-- Map iframe -->
+            <iframe id="mapFrame" style="display: none;" src=""></iframe>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingContainer = document.getElementById('loadingContainer');
+            const errorMessage = document.getElementById('errorMessage');
+            const mapFrame = document.getElementById('mapFrame');
+            const tecnologiaForm = document.getElementById('tecnologiaForm');
+            
+            // Función para cargar el mapa inicial
+            function loadInitialMap() {
+                loadingContainer.style.display = 'flex';
+                errorMessage.style.display = 'none';
+                mapFrame.style.display = 'none';
+                
+                fetch('/generar-mapa')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            loadingContainer.style.display = 'none';
+                            mapFrame.style.display = 'block';
+                            mapFrame.src = "/static/mapa.html";
+                        } else {
+                            throw new Error(data.error || 'Error al generar el mapa');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        loadingContainer.style.display = 'none';
+                        errorMessage.style.display = 'block';
+                    });
+            }
+        
+            // Evento submit del formulario para Kruskal
+            tecnologiaForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(tecnologiaForm);
+                
+                loadingContainer.style.display = 'flex';
+                errorMessage.style.display = 'none';
+                mapFrame.style.display = 'none';
+                
+                fetch('/kruskal', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadingContainer.style.display = 'none';
+                        mapFrame.style.display = 'block';
+                        mapFrame.src = data.mapa_path;
+                    } else {
+                        throw new Error(data.error || 'Error al generar el mapa');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loadingContainer.style.display = 'none';
+                    errorMessage.style.display = 'block';
+                });
+            });
+        
+            // Cargar el mapa inicial cuando se carga la página
+            loadInitialMap();
+        });
+    </script>
+</body>
+</html>

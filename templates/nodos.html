@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selección de Nodos</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            max-width: none;
+        }
+
+        .options {
+            flex: 1;
+            padding: 20px;
+            background-color: #f8f9fa;
+            min-width: 200px;
+        }
+
+        .map {
+            flex: 3;
+            background-color: #e9ecef;
+            position: relative;
+        }
+
+        .map iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .loading-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e9ecef;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .selected-nodes {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="options">
+            <h2>Selección de Nodos</h2>
+            <div class="selected-nodes">
+                <h4>Nodo Origen:</h4>
+                <div id="nodoOrigen">No seleccionado</div>
+                <h4 class="mt-3">Nodo Destino:</h4>
+                <div id="nodoDestino">No seleccionado</div>
+            </div>
+            <div class="mt-4">
+                <h4>Distancia:</h4>
+                <div id="distanciaRuta">No calculada</div>
+            </div>
+            <button id="calcularRuta" class="btn btn-primary w-100 mt-4" disabled>Calcular Ruta</button>
+            <button class="btn btn-secondary w-100 mt-2" onclick="resetSelection()">Reiniciar Selección</button>
+            <button class="btn btn-secondary w-100 mt-2" onclick="window.location.href='/opciones'">Volver</button>
+        </div>
+        <div class="map">
+            <div class="loading-container" id="loadingContainer">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <div>Generando mapa...</div>
+            </div>
+            
+            <div class="error-message" id="errorMessage">
+                Error al cargar el mapa. Por favor, recarga la página.
+            </div>
+            
+            <iframe id="mapFrame" style="display: none;" src=""></iframe>
+        </div>
+    </div>
+
+    <script>
+        let nodoOrigenSeleccionado = null;
+        let nodoDestinoSeleccionado = null;
+
+        function loadInitialMap() {
+                loadingContainer.style.display = 'flex';
+                errorMessage.style.display = 'none';
+                mapFrame.style.display = 'none';
+                
+                fetch('/generar-mapa-seleccionable')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            loadingContainer.style.display = 'none';
+                            mapFrame.style.display = 'block';
+                            mapFrame.src = "/static/mapa_seleccionable.html";
+                        } else {
+                            throw new Error(data.error || 'Error al generar el mapa');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        loadingContainer.style.display = 'none';
+                        errorMessage.style.display = 'block';
+                    });
+        }
+    
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingContainer = document.getElementById('loadingContainer');
+            const errorMessage = document.getElementById('errorMessage');
+            const mapFrame = document.getElementById('mapFrame');
+            const calcularRutaBtn = document.getElementById('calcularRuta');
+            
+            
+    
+            loadInitialMap();
+
+            // Modificar en nodos.html el event listener del botón:
+            document.getElementById('calcularRuta').addEventListener('click', function() {
+                if (!nodoOrigenSeleccionado || !nodoDestinoSeleccionado) {
+                    return;
+                }
+                
+                fetch(`/dijkstra?inicio=${nodoOrigenSeleccionado.id}&fin=${nodoDestinoSeleccionado.id}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update distance display
+                            document.getElementById('distanciaRuta').textContent = `${data.distancia.toFixed(2)} km`;
+                            // Crear un blob con el HTML del mapa
+                            const blob = new Blob([data.mapa_html], {type: 'text/html'});
+                            const url = URL.createObjectURL(blob);
+                            document.getElementById('mapFrame').src = url;
+                        } else {
+                            alert('Error: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error al calcular la ruta');
+                    });
+            });
+
+
+        });
+    
+        // Single event listener outside DOMContentLoaded
+        window.addEventListener('message', function(event) {
+            console.log('Message received in parent:', event);  // Log más detallado
+            try {
+                if (event.data && event.data.type === 'markerClick') {
+                    handleMarkerClick(event.data.nodeId, event.data.nodeInfo);
+                }
+            } catch(e) {
+                console.error('Error handling message:', e);
+            }
+        }, false);
+    
+        function handleMarkerClick(nodeId, nodeInfo) {
+            console.log('Handling click:', {nodeId, nodeInfo});
+            if (!nodoOrigenSeleccionado) {
+                nodoOrigenSeleccionado = { id: nodeId, info: nodeInfo };
+                document.getElementById('nodoOrigen').textContent = nodeInfo;
+                console.log('Origin node set:', nodoOrigenSeleccionado);
+            } else if (!nodoDestinoSeleccionado && nodeId !== nodoOrigenSeleccionado.id) {
+                nodoDestinoSeleccionado = { id: nodeId, info: nodeInfo };
+                document.getElementById('nodoDestino').textContent = nodeInfo;
+                document.getElementById('calcularRuta').disabled = false;
+                console.log('Destination node set:', nodoDestinoSeleccionado);
+            }
+        }
+    
+        function resetSelection() {
+            nodoOrigenSeleccionado = null;
+            nodoDestinoSeleccionado = null;
+            document.getElementById('nodoOrigen').textContent = 'No seleccionado';
+            document.getElementById('nodoDestino').textContent = 'No seleccionado';
+            document.getElementById('calcularRuta').disabled = true;
+            document.getElementById('mapFrame').src = document.getElementById('mapFrame').src;
+            document.getElementById('distanciaRuta').textContent = 'No calculada';
+            loadInitialMap();
+        }
+    </script>
+
+</body>
+</html>

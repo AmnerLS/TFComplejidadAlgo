@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado de Kruskal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Resultado del Algoritmo de Kruskal</h1>
+        <h2>Costo Total: {{ costo_total }}</h2>
+        <h3>Aristas del MST:</h3>
+        <ul>
+            {% for u, v, weight in mst %}
+                <li>{{ u }} - {{ v }}: {{ weight }}</li>
+            {% endfor %}
+        </ul>
+        <h3>Mapa:</h3>
+        <iframe src="{{ url_for('static', filename='kruskal_mapa.html') }}" width="100%" height="600px"></iframe>
+    </div>
+</body>
+</html>
